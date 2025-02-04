@@ -1,29 +1,44 @@
 import requests
+import os
+from dotenv import load_dotenv
 
-# Helius API Setup
-helius_api_key = 'YOUR_HELIUS_API_KEY'
-helius_url = f"https://api.helius.xyz/v0/token-metadata?api-key={helius_api_key}"
+# I wasn't able to get the price in SOL from just HELIUM RPC 
+# I wasn't able to get the socials
 
-# Jupiter API Setup
-jupiter_url = "https://quote-api.jup.ag/v4/price"
 
-# Example Token Mint Address (replace with actual token address)
-token_mint = 'TOKEN_MINT_ADDRESS'
+# Load environment variables from .env file
+load_dotenv()
 
-# Fetch Token Metadata from Helius
-metadata_response = requests.get(f"{helius_url}&mint={token_mint}")
-metadata = metadata_response.json()
+# Get Helius API key from the environment
+helius_api_key = os.getenv('HELIUS_API_KEY')
 
-# Fetch Token Price from Jupiter
-price_response = requests.get(f"{jupiter_url}?ids={token_mint}")
-price_data = price_response.json()
+# Example Token Mint Address (replace with actual token mint)
+token_mint = '6ogzHhzdrQr9Pgv6hZ2MNze7UrzBMAFyBBWUYp1Fhitx'
 
-# Display Data
-print("Name:", metadata.get('name'))
-print("Symbol:", metadata.get('symbol'))
-print("Image:", metadata.get('logoURI'))
-print("Price in SOL:", price_data['data']['priceInSOL'])
-print("Price in USD:", price_data['data']['priceInUSD'])
-print("Social Links:", metadata.get('socials', 'N/A'))
-print("Supply:", metadata.get('supply'))
-print("Market Cap / FDV:", metadata.get('marketCap'))
+# Request
+import requests
+
+response = requests.post(
+    "https://mainnet.helius-rpc.com/?api-key="+helius_api_key,
+    json={"jsonrpc":"2.0","id":1,"method":"getAsset","params":{"id":"6ogzHhzdrQr9Pgv6hZ2MNze7UrzBMAFyBBWUYp1Fhitx"}}
+)
+data = response.json()
+
+name = data['result']['content']['metadata']['name']
+symbol = data['result']['content']['metadata']['symbol']
+image = data['result']['content']['links']['image']
+priceusd = data['result']['token_info']['price_info']['price_per_token']
+supply = data['result']['token_info']['supply']/10**6
+
+
+# print(data)
+
+
+
+# Display Token Data
+print("Name: ", name)
+print("Symbol: ", symbol)
+print("Image: ", image)
+print("Supply:", supply)
+print("Price: ", priceusd, " " + str(data['result']['token_info']['price_info']['currency']))
+print("Market Cap:", priceusd*supply)
